@@ -1,0 +1,42 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model File {
+  id           Int      @id @default(autoincrement())
+  originalName String
+  url          String
+  mimetype     String
+  s3Key        String
+  eTag         String
+  bytes        Int?
+  createdAt    DateTime @default(now())
+
+  transcriptionJobs TranscriptionJob[] // связь 1:N
+}
+
+model TranscriptionJob {
+  id                Int       @id @default(autoincrement())
+  status            String // PROCESSING, COMPLETED, FAILED
+  transcriptionText String?
+  createdAt         DateTime  @default(now())
+  completedAt       DateTime?
+
+  // relation
+  fileId Int
+  file   File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@map("transcription_jobs")
+}
